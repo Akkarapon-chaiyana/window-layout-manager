@@ -7,6 +7,8 @@ const store = require('./src/layoutStore');
 let tray = null;
 let popupWin = null;
 
+app.dock.hide();
+
 app.whenReady().then(() => {
   // Use a blank tray icon (16x16 transparent PNG encoded inline)
   const icon = nativeImage.createFromDataURL(
