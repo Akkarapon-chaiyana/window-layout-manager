@@ -1,0 +1,15 @@
+{
+  "name": "window-layout-manager",
+  "version": "1.0.0",
+  "description": "Manage window layouts and lock browser windows",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "node-window-manager": "^2.2.4"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  }
+}
