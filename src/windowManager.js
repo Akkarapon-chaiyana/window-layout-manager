@@ -25,12 +25,15 @@ tell application "System Events"
   repeat with proc in appList
     set appName to name of proc
     set pidNum to unix id of proc
-    repeat with win in (every window of proc)
+    set winList to every window of proc
+    set winCount to count of winList
+    repeat with i from 1 to winCount
+      set win to item i of winList
       try
         set winTitle to name of win
         set pos to position of win
         set sz to size of win
-        set end of output to appName & "|||" & winTitle & "|||" & (item 1 of pos) & "|||" & (item 2 of pos) & "|||" & (item 1 of sz) & "|||" & (item 2 of sz) & "|||" & pidNum
+        set end of output to appName & "|||" & winTitle & "|||" & (item 1 of pos) & "|||" & (item 2 of pos) & "|||" & (item 1 of sz) & "|||" & (item 2 of sz) & "|||" & pidNum & "|||" & i
       end try
     end repeat
   end repeat
@@ -50,26 +53,26 @@ function parseWindows(raw) {
   if (!raw) return [];
   return raw.split(', ').map(entry => {
     const parts = entry.split('|||');
-    if (parts.length < 7) return null;
+    if (parts.length < 8) return null;
     return {
-      app:    parts[0].trim(),
-      title:  parts[1].trim(),
-      x:      parseInt(parts[2]),
-      y:      parseInt(parts[3]),
-      width:  parseInt(parts[4]),
-      height: parseInt(parts[5]),
-      pid:    parseInt(parts[6]),
+      app:      parts[0].trim(),
+      title:    parts[1].trim(),
+      x:        parseInt(parts[2]),
+      y:        parseInt(parts[3]),
+      width:    parseInt(parts[4]),
+      height:   parseInt(parts[5]),
+      pid:      parseInt(parts[6]),
+      winIndex: parseInt(parts[7]),  // index within the process — survives title changes
     };
   }).filter(w => w && !isNaN(w.x));
 }
 
-// Find window by PID — works even when the title changes (e.g. YouTube song change)
-async function getWindowBounds(app, title, pid) {
-  const script = pid
+async function getWindowBounds(app, title, pid, winIndex) {
+  const script = (pid && winIndex)
     ? `
 tell application "System Events"
   set proc to first application process whose unix id is ${pid}
-  set win to first window of proc
+  set win to item ${winIndex} of (every window of proc)
   set pos to position of win
   set sz to size of win
   return (item 1 of pos) & "|||" & (item 2 of pos) & "|||" & (item 1 of sz) & "|||" & (item 2 of sz)
@@ -104,13 +107,12 @@ end tell
   }
 }
 
-// Set window bounds by PID
-async function setWindowBounds(app, title, x, y, width, height, pid) {
-  const script = pid
+async function setWindowBounds(app, title, x, y, width, height, pid, winIndex) {
+  const script = (pid && winIndex)
     ? `
 tell application "System Events"
   set proc to first application process whose unix id is ${pid}
-  set win to first window of proc
+  set win to item ${winIndex} of (every window of proc)
   set position of win to {${x}, ${y}}
   set size of win to {${width}, ${height}}
 end tell
