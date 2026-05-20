@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const { getWindows, setWindowBounds } = require('./src/windowManager');
-const { lock, unlock, unlockAll, getLockedWindows } = require('./src/lockDaemon');
+const { lock, unlock, unlockAll, getLockedWindows, handleDisplayChange } = require('./src/lockDaemon');
 const store = require('./src/layoutStore');
 
 let tray = null;
@@ -10,6 +10,10 @@ let popupWin = null;
 app.dock.hide();
 
 app.whenReady().then(() => {
+  const { screen } = require('electron');
+  screen.on('display-added', handleDisplayChange);
+  screen.on('display-removed', handleDisplayChange);
+  screen.on('display-metrics-changed', handleDisplayChange);
   // Use a blank tray icon (16x16 transparent PNG encoded inline)
   const icon = nativeImage.createFromDataURL(
     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAADklEQVQ4jWNgGAWDGwAAAZAAAR88aMoAAAAASUVORK5CYII='
