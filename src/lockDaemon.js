@@ -10,7 +10,7 @@ function startInterval() {
   interval = setInterval(async () => {
     if (paused) return;
     for (const [id, { win, bounds }] of lockedWindows) {
-      const current = await getWindowBounds(win.app, win.title);
+      const current = await getWindowBounds(win.app, win.title, win.pid);
       if (!current) continue;
       const moved =
         current.x !== bounds.x ||
@@ -18,7 +18,7 @@ function startInterval() {
         current.width !== bounds.width ||
         current.height !== bounds.height;
       if (moved) {
-        await setWindowBounds(win.app, win.title, bounds.x, bounds.y, bounds.width, bounds.height);
+        await setWindowBounds(win.app, win.title, bounds.x, bounds.y, bounds.width, bounds.height, win.pid);
       }
     }
   }, 500);
@@ -57,7 +57,7 @@ async function handleDisplayChange() {
   await new Promise(r => setTimeout(r, 3000));
 
   for (const [id, entry] of lockedWindows) {
-    const newBounds = await getWindowBounds(entry.win.app, entry.win.title);
+    const newBounds = await getWindowBounds(entry.win.app, entry.win.title, entry.win.pid);
     if (newBounds) {
       entry.bounds = newBounds; // re-anchor to new position
     }
